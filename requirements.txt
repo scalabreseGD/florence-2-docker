@@ -1,0 +1,10 @@
+numpy<2.0.0
+fastapi
+pydantic
+uvicorn
+pillow
+opencv-python
+transformers
+torch
+torchvision
+torchaudio
