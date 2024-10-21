@@ -1,4 +1,4 @@
-from typing import Literal, Optional, List
+from typing import Literal, Optional, List, Union
 
 from pydantic import BaseModel, Field
 
@@ -28,3 +28,10 @@ class PredictArgs(BaseModel):
                                                 FLORENCE_PROMPTS))
     text: Optional[str] = Field('', description="An additional input to give to the model")
     images: List[str] = Field(..., description="The images to predict in base64")
+
+
+class PredictResponse(BaseModel):
+    task: Literal[FLORENCE_PROMPTS] = Field(...,
+                                            description="The task to execute between these values\n" + '\n'.join(
+                                                FLORENCE_PROMPTS))
+    response: Optional[Union[str, dict]] = Field(..., description="The output from Florence depending on the task type")
