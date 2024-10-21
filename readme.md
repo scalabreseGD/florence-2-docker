@@ -7,7 +7,7 @@ export version=1.0.0
 ```
 ### GPU
 ```shell
-docker build . -t florence-2-gpu:${version} -f Dockerfile.gpu
+docker build . -t florence-2-gpu:${version} -f Dockerfile.gpu --platform linux/amd64
 ```
 
 ```shell

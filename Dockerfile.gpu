@@ -18,3 +18,4 @@ ENV PORT=8000
 
 # Run the Uvicorn app
 CMD ["python3", "app.py"]
+ENTRYPOINT ["/bin/sh"]
