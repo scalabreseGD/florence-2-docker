@@ -1,8 +1,9 @@
-import uuid
+import os
+from datetime import datetime
 from typing import List
 
+import uvicorn
 from fastapi import FastAPI
-from datetime import datetime
 
 from api import florence
 from middleware import LimitRequestSizeMiddleware
@@ -26,3 +27,8 @@ def __return_response(request: PredictArgs) -> List[PredictResponse]:
 @app.post("/v1/predict", response_model=List[PredictResponse])
 async def completions(request: PredictArgs):
     return __return_response(request)
+
+
+if __name__ == "__main__":
+    port = os.environ.get('PORT', '8000')
+    uvicorn.run(app, host="0.0.0.0", port=int(port), log_level="info")

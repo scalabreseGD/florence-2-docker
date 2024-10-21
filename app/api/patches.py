@@ -1,12 +1,8 @@
 import os
-import re
 import subprocess
-from typing import Union, List
-
-import torch
-import transformers
 from unittest.mock import patch
 
+import torch
 from transformers.dynamic_module_utils import get_imports
 
 if torch.backends.mps.is_available():
