@@ -1,4 +1,7 @@
-numpy==1.26.4
+torch
+torchvision
+torchaudio
+numpy<2.0.0
 fastapi
 pydantic
 uvicorn
