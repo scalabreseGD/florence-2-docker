@@ -1,10 +1,12 @@
-from typing import List
+from typing import List, Tuple, Union
 
+import numpy as np
 import torch
+from PIL.Image import Image
 from transformers import AutoModelForCausalLM, AutoProcessor
 
 from api.patches import DEVICE, run_with_patch
-from api.utils import base64_to_image_with_size
+from api.utils import base64_to_image_with_size, is_base64_string, load_image_from_path
 
 
 class Florence:
@@ -32,17 +34,10 @@ class Florence:
                                                        clean_up_tokenization_spaces=True
                                                        )
 
-    def call_model(self, task: str, text: str, images: List[str]):
-        if text == '':
-            text = task
-        images_pillow_with_size = [base64_to_image_with_size(image) for image in images]
-        if self.processor is None:
-            run_with_patch(self.__init_model)
-        image_size = images_pillow_with_size[0][1]
-        inputs = self.processor(text=[text for _ in images_pillow_with_size],
-                                images=[images_pillow[0] for images_pillow in images_pillow_with_size],
-                                # padding=True,
-                                # truncation=True,
+    def __call_model(self, task: str, text: str, images: List[Tuple[Image, Union[Tuple[int, int], np.ndarray]]]):
+        image_size = images[0][1]
+        inputs = self.processor(text=[text for _ in images],
+                                images=[images_pillow[0] for images_pillow in images],
                                 return_tensors="pt").to(DEVICE)
         with torch.inference_mode(), torch.autocast(DEVICE.type):
             generated_ids = self.model.generate(
@@ -57,7 +52,21 @@ class Florence:
             response = self.processor.post_process_generation(generated_text, task=task,
                                                               image_size=image_size)
             responses.append(response)
+
+        [images_pillow[0].close() for images_pillow in images]
         return responses
+
+    def call_model(self, task: str, text: str, images: List[str]):
+        if self.processor is None:
+            run_with_patch(self.__init_model)
+
+        if text == '':
+            text = task
+        if is_base64_string(images[0]):
+            images_pillow_with_size = [base64_to_image_with_size(image) for image in images]
+        else:
+            images_pillow_with_size = [load_image_from_path(image_path) for image_path in images]
+        return self.__call_model(task, text, images_pillow_with_size)
 
 
 class FlorenceServe:

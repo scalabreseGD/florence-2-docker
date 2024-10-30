@@ -14,3 +14,4 @@ einops
 optimum
 accelerate
 opencv-python
+toml
