@@ -14,7 +14,7 @@ class LimitRequestSizeMiddleware(BaseHTTPMiddleware):
         self.max_upload_size = conf['app']['max_upload_size']
 
     async def dispatch(self, request: Request, call_next):
-        if 'multipart' in request.headers.get('content-type'):
+        if request.headers.get('content-type') and 'multipart' in request.headers.get('content-type'):
             response = await call_next(request)
             return response
 

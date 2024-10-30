@@ -6,7 +6,7 @@ from PIL.Image import Image
 from transformers import AutoModelForCausalLM, AutoProcessor
 
 from api.patches import DEVICE, run_with_patch
-from api.utils import base64_to_image_with_size, is_base64_string, load_image_from_path
+from api.utils import base64_to_image_with_size, is_base64_string, load_image_from_path, is_path_video, load_video_from_path
 
 
 class Florence:
@@ -65,7 +65,10 @@ class Florence:
         if is_base64_string(images[0]):
             images_pillow_with_size = [base64_to_image_with_size(image) for image in images]
         else:
-            images_pillow_with_size = [load_image_from_path(image_path) for image_path in images]
+            if len(images) == 1 and is_path_video(images[0]):
+                images_pillow_with_size = [load_video_from_path(images[0])]
+            else:
+                images_pillow_with_size = [load_image_from_path(image_path) for image_path in images]
         return self.__call_model(task, text, images_pillow_with_size)
 
 

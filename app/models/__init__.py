@@ -27,7 +27,11 @@ class PredictArgs(BaseModel):
                                             description="The task to execute between these values\n" + '\n'.join(
                                                 FLORENCE_PROMPTS))
     text: Optional[str] = Field('', description="An additional input to give to the model")
-    images: List[str] = Field(..., description="The images to predict in base64")
+    images: Optional[List[str]] = Field(..., description="The images to predict in base64 or the path of the images to load")
+    video: Optional[str] = Field(..., description="The path of the video to predict")
+    scale_factor: Optional[float] = Field(1, description="The scale factor of the media to reduce the memory")
+    batch_size: Optional[int] = Field(20, description="The batch for the frames")
+
 
 
 class PredictResponse(BaseModel):
