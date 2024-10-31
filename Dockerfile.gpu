@@ -1,11 +1,21 @@
-FROM nvcr.io/nvidia/pytorch:24.09-py3
+FROM nvcr.io/nvidia/cuda:12.2.2-devel-ubuntu22.04
 
 # Set the working directory in the container
 WORKDIR /app
 
 # Copy the requirements file and install dependencies
 COPY requirements.txt /app/requirements.txt
-RUN pip install -r requirements.txt && \
+
+RUN apt update && apt-get install -y \
+    python3.10 \
+    python3-pip \
+    ffmpeg \
+    libsm6 \
+    libxext6 \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 && \
+    pip install -r requirements.txt && \
     pip install flash-attn
 
 # Copy the rest of the application code
