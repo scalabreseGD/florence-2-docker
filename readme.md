@@ -13,11 +13,11 @@
 ## Build and Run
 ### Version
 ```shell
-export version=0.0.4
+export version=x.y.z
 ```
 ### GPU
 ```shell
-docker build . -t florence-2-gpu:${version} -f Dockerfile.gpu --platform linux/amd64
+bash install.sh  florence-2 gpu
 ```
 
 ```shell
@@ -26,7 +26,7 @@ docker run --gpus all -p 8080:8080 -e PORT=8080 -v ./huggingface:/root/.cache/hu
 
 ### CPU
 ```shell
-docker build . -t florence-2-cpu:${version} -f Dockerfile.cpu --platform linux/amd64
+bash install.sh  florence-2 cpu
 ```
 ```shell
 docker run -p 8080:8080 -e PORT=8080 -v ./huggingface:/root/.cache/huggingface/ florence-2-cpu:${version}

@@ -13,5 +13,6 @@ timm
 einops
 optimum
 accelerate
+opencv-python
 supervision
 toml
