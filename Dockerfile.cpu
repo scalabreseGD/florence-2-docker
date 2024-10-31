@@ -11,7 +11,8 @@ RUN apt update && apt-get install --no-install-recommends -y \
     python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install -r requirements.txt && rm -rf /root/.cache/pip
+RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
+    pip install -r requirements.txt
 
 # Copy the rest of the application code
 COPY ./app /app

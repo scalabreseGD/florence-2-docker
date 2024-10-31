@@ -11,6 +11,15 @@ IMAGE_NAME="$1-$2"
 TYPE="$2"
 REGISTRY="$3"
 
+arch=$(uname -m)
+if [ "$arch" = "x86_64" ]; then
+    PLATFORM=""
+elif [ "$arch" = "arm64" ]; then
+    PLATFORM="--platform linux/amd64"
+else
+    PLATFORM=""
+fi
+
 latest_tag=$(docker images --format "{{.Tag}}" $IMAGE_NAME | sort -V | tail -n 1)
 
 echo "Bumping $IMAGE_NAME"
@@ -32,8 +41,8 @@ else
     echo "Bumped version to: $new_version"
 fi
 
-echo "docker build . -t $IMAGE_NAME:$new_version -f Dockerfile.$TYPE --platform linux/amd64"
-docker build . -t $IMAGE_NAME:$new_version -f Dockerfile.$TYPE --platform linux/amd64
+echo "docker build . --no-cache -t $IMAGE_NAME:$new_version -f Dockerfile.$TYPE $PLATFORM"
+docker build . --no-cache -t $IMAGE_NAME:$new_version -f Dockerfile.$TYPE $PLATFORM
 
 echo "docker tag $IMAGE_NAME:$new_version $REGISTRY/$IMAGE_NAME:$new_version"
 docker tag $IMAGE_NAME:$new_version $REGISTRY/$IMAGE_NAME:$new_version

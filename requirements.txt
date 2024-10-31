@@ -1,6 +1,3 @@
-torch
-torchvision
-torchaudio
 numpy<2.0.0
 fastapi
 pydantic
