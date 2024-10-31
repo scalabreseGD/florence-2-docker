@@ -17,7 +17,7 @@ export version=x.y.z
 ```
 ### GPU
 ```shell
-bash install.sh  florence-2 gpu
+bash install.sh  florence-2 gpu registry
 ```
 
 ```shell
@@ -26,7 +26,7 @@ docker run --gpus all -p 8080:8080 -e PORT=8080 -v ./huggingface:/root/.cache/hu
 
 ### CPU
 ```shell
-bash install.sh  florence-2 cpu
+bash install.sh  florence-2 cpu registry
 ```
 ```shell
 docker run -p 8080:8080 -e PORT=8080 -v ./huggingface:/root/.cache/huggingface/ florence-2-cpu:${version}
