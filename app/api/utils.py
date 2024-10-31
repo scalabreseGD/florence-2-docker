@@ -1,13 +1,16 @@
 import base64
 import io
 import re
+from copy import copy
 from pathlib import Path
 
 import cv2
-from typing import Tuple, Union, Optional
+from typing import Tuple, Union, Optional, Callable, Dict, List, Any
 
 import numpy as np
 from PIL import Image
+import supervision as sv
+from tqdm import tqdm
 
 
 def is_base64_string(string):
@@ -50,17 +53,27 @@ def load_image_from_path(path: str, scale_factor: Optional[float] = None) -> Ima
     return image, size
 
 
-def load_video_from_path(path: str, scale_factor: Optional[float] = None):
-    cap = cv2.VideoCapture(path)
+def load_video_from_path(path: str,
+                         scale_factor: Optional[float] = None,
+                         start_second: Optional[int] = 0,
+                         end_second: Optional[int] = None
+                         ):
+    def to_pil(image):
+        image = sv.scale_image(image, scale_factor)
+        image = cv2.cvtColor(copy(image), cv2.COLOR_BGR2RGB)
+        image = Image.fromarray(image)
+        return image, image.size
 
-    frames = []
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if not ret:
-            break
-        # Convert OpenCV image (BGR) to RGB and then to PIL
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        pil_image = Image.fromarray(frame_rgb)
-        image = scale_image(pil_image, scale_factor)
-        frames.append((image, image.size))
-    return frames
+    video_info = sv.VideoInfo.from_video_path(path)
+    frames_gen = sv.get_video_frames_generator(source_path=path,
+                                               start=start_second * video_info.fps,
+                                               end=end_second * video_info.fps if end_second else None)
+    return list([to_pil(frame) for frame in frames_gen])
+
+
+def perform_in_batch(images, batch_size, function: Callable[[List, Dict], Any], **kwargs):
+    results = []
+    for frame_index in tqdm(range(0, len(images), min(len(images), batch_size)), desc='Performing inference'):
+        batch = function(images[frame_index:frame_index + batch_size], **kwargs)
+        results.extend(batch)
+    return results

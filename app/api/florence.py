@@ -1,4 +1,4 @@
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Optional
 
 import numpy as np
 import torch
@@ -6,7 +6,8 @@ from PIL.Image import Image
 from transformers import AutoModelForCausalLM, AutoProcessor
 
 from api.patches import DEVICE, run_with_patch
-from api.utils import base64_to_image_with_size, is_base64_string, load_image_from_path, is_path_video, load_video_from_path
+from api.utils import base64_to_image_with_size, is_base64_string, load_image_from_path, is_path_video, \
+    load_video_from_path, perform_in_batch
 
 
 class Florence:
@@ -34,7 +35,7 @@ class Florence:
                                                        clean_up_tokenization_spaces=True
                                                        )
 
-    def __call_model(self, task: str, text: str, images: List[Tuple[Image, Union[Tuple[int, int], np.ndarray]]]):
+    def __call_model(self, images: List[Tuple[Image, Union[Tuple[int, int], np.ndarray]]], task: str, text: str):
         image_size = images[0][1]
         inputs = self.processor(text=[text for _ in images],
                                 images=[images_pillow[0] for images_pillow in images],
@@ -56,21 +57,25 @@ class Florence:
         [images_pillow[0].close() for images_pillow in images]
         return responses
 
-    def call_model(self, task: str, text: str, images: List[str]):
+    def call_model(self, task: str, text: str,
+                   images: Optional[List[str]] = None,
+                   video: Optional[str] = None,
+                   batch_size:Optional[int] = None,
+                   scale_factor=None,
+                   start_second=None,
+                   end_second=None):
         if self.processor is None:
             run_with_patch(self.__init_model)
 
         if text == '':
             text = task
-        if is_base64_string(images[0]):
+        if video is not None:
+            images_pillow_with_size = load_video_from_path(video, scale_factor, start_second, end_second)
+        elif images is not None and is_base64_string(images[0]):
             images_pillow_with_size = [base64_to_image_with_size(image) for image in images]
         else:
-            if len(images) == 1 and is_path_video(images[0]):
-                images_pillow_with_size = [load_video_from_path(images[0])]
-            else:
-                images_pillow_with_size = [load_image_from_path(image_path) for image_path in images]
-        return self.__call_model(task, text, images_pillow_with_size)
-
+            images_pillow_with_size = [load_image_from_path(image_path) for image_path in images]
+        return perform_in_batch(images_pillow_with_size, batch_size, self.__call_model, task=task, text=text)
 
 class FlorenceServe:
     loaded_models = {}
