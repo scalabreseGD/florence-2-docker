@@ -1,15 +1,12 @@
 import base64
 import io
 import re
-from copy import copy
 from pathlib import Path
-
-import cv2
 from typing import Tuple, Union, Optional, Callable, Dict, List, Any
 
 import numpy as np
-from PIL import Image
 import supervision as sv
+from PIL import Image
 from tqdm import tqdm
 
 
@@ -60,8 +57,7 @@ def load_video_from_path(path: str,
                          ):
     def to_pil(image):
         image = sv.scale_image(image, scale_factor)
-        image = cv2.cvtColor(copy(image), cv2.COLOR_BGR2RGB)
-        image = Image.fromarray(image)
+        image = sv.cv2_to_pillow(image)
         return image, image.size
 
     video_info = sv.VideoInfo.from_video_path(path)

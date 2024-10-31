@@ -42,10 +42,10 @@ else
 fi
 
 echo "docker build . --no-cache -t $IMAGE_NAME:$new_version -f Dockerfile.$TYPE $PLATFORM"
-docker build . --no-cache -t $IMAGE_NAME:$new_version -f Dockerfile.$TYPE $PLATFORM
+docker build . -t $IMAGE_NAME:$new_version -f Dockerfile.$TYPE $PLATFORM
 
-echo "docker tag $IMAGE_NAME:$new_version $REGISTRY/$IMAGE_NAME:$new_version"
-docker tag $IMAGE_NAME:$new_version $REGISTRY/$IMAGE_NAME:$new_version
-
-echo "docker push $REGISTRY/$IMAGE_NAME:$new_version"
-docker push $REGISTRY/$IMAGE_NAME:$new_version
+#echo "docker tag $IMAGE_NAME:$new_version $REGISTRY/$IMAGE_NAME:$new_version"
+#docker tag $IMAGE_NAME:$new_version $REGISTRY/$IMAGE_NAME:$new_version
+#
+#echo "docker push $REGISTRY/$IMAGE_NAME:$new_version"
+#docker push $REGISTRY/$IMAGE_NAME:$new_version
