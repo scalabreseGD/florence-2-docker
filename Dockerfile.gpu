@@ -16,7 +16,7 @@ RUN apt update && apt-get install -y \
 
 RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 && \
     pip install -r requirements.txt && \
-    pip install flash-attn
+    pip install flash-attn --no-build-isolation
 
 # Copy the rest of the application code
 COPY ./app /app
