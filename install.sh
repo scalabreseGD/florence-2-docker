@@ -9,6 +9,7 @@ fi
 # Assign arguments to variables
 IMAGE_NAME="$1-$2"
 TYPE="$2"
+REGISTRY="$3"
 
 latest_tag=$(docker images --format "{{.Tag}}" $IMAGE_NAME | sort -V | tail -n 1)
 
@@ -34,8 +35,8 @@ fi
 echo "docker build . -t $IMAGE_NAME:$new_version -f Dockerfile.$TYPE --platform linux/amd64"
 docker build . -t $IMAGE_NAME:$new_version -f Dockerfile.$TYPE --platform linux/amd64
 
-echo "docker tag $IMAGE_NAME:$new_version scalabrese/$IMAGE_NAME:$new_version"
-docker tag $IMAGE_NAME:$new_version scalabrese/$IMAGE_NAME:$new_version
+echo "docker tag $IMAGE_NAME:$new_version $REGISTRY/$IMAGE_NAME:$new_version"
+docker tag $IMAGE_NAME:$new_version $REGISTRY/$IMAGE_NAME:$new_version
 
-echo "docker push scalabrese/$IMAGE_NAME:$new_version"
-docker push scalabrese/$IMAGE_NAME:$new_version
+echo "docker push $REGISTRY/$IMAGE_NAME:$new_version"
+docker push $REGISTRY/$IMAGE_NAME:$new_version
