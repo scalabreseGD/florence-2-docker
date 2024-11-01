@@ -3,8 +3,8 @@ import io
 import re
 from typing import Tuple, Union, Optional, Callable, Dict, List, Any
 
+import cv2
 import numpy as np
-import supervision as sv
 from PIL import Image
 from tqdm import tqdm
 
@@ -44,21 +44,66 @@ def load_image_from_path(path: str, scale_factor: Optional[float] = None) -> Ima
     return image, size
 
 
+def scale_image(image, scale_factor=None):
+    if scale_factor <= 0:
+        raise ValueError("Scale factor must be positive.")
+
+    width_old, height_old = image.shape[1], image.shape[0]
+    width_new = int(width_old * scale_factor)
+    height_new = int(height_old * scale_factor)
+    return cv2.resize(image, (width_new, height_new), interpolation=cv2.INTER_LINEAR)
+
+
 def load_video_from_path(path: str,
                          scale_factor: Optional[float] = None,
                          start_second: Optional[int] = 0,
-                         end_second: Optional[int] = None
-                         ):
+                         end_second: Optional[int] = None):
     def to_pil(image):
-        image = sv.scale_image(image, scale_factor)
-        image = sv.cv2_to_pillow(image)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image = Image.fromarray(image)
         return image, image.size
 
-    video_info = sv.VideoInfo.from_video_path(path)
-    frames_gen = sv.get_video_frames_generator(source_path=path,
-                                               start=start_second * video_info.fps,
-                                               end=end_second * video_info.fps if end_second else None)
-    return list([to_pil(frame) for frame in frames_gen])
+    # Open the video file
+    cap = cv2.VideoCapture(path, cv2.CAP_FFMPEG)
+
+    # Check if the video opened successfully
+    if not cap.isOpened():
+        print("Error: Could not open video.")
+        return []
+
+    # Get the frame rate of the video
+    fps = cap.get(cv2.CAP_PROP_FPS)
+
+    # Calculate the start and end frames
+    start_frame = int(start_second * fps)
+    end_frame = int(end_second * fps) if end_second is not None else int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+    # Set the initial frame position to the start frame
+    cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
+
+    frames = []
+    current_frame = start_frame
+
+    # Read frames from start_frame to end_frame
+    while current_frame <= end_frame:
+        ret, frame = cap.read()
+
+        if not ret:
+            print("Reached the end of the video or encountered an error.")
+            break
+        if scale_factor:
+            frame = scale_image(frame, scale_factor)
+        frame = to_pil(frame)
+        # Append the frame to the list
+        frames.append(frame)
+
+        # Increment the frame count
+        current_frame += 1
+
+    # Release the video capture object
+    cap.release()
+
+    return frames
 
 
 def perform_in_batch(images, batch_size, function: Callable[[List, Dict], Any], **kwargs):
