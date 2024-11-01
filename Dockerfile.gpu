@@ -19,7 +19,7 @@ RUN apt update && \
 RUN pip install --upgrade pip wheel setuptools
 
 # Install PyTorch and CUDA dependencies
-RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+RUN pip install torch torchvision torchaudio
 
 # Builder stage to install Python dependencies separately
 FROM base AS dependencies
