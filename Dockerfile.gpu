@@ -19,7 +19,7 @@ RUN pip install --upgrade pip wheel setuptools
 
 RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 && \
     pip install -r requirements.txt && \
-    MAX_JOBS=16 python3 -m pip3 -v install flash-attn --no-build-isolation
+    MAX_JOBS=16 pip -v install flash-attn --no-build-isolation
 
 
 # Copy the rest of the application code
