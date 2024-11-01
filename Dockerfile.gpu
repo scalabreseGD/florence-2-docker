@@ -28,16 +28,16 @@ FROM base AS dependencies
 COPY requirements.txt .
 
 # Install Python dependencies
-RUN pip install -r requirements.txt
+RUN pip install -r requirements.txt --target=/app/py_packages
 
 # Final stage to build the lightweight image
 FROM base AS final
 
 # Copy installed dependencies from the dependencies stage
-COPY --from=dependencies /root/.local /root/.local
+COPY --from=dependencies /app/py_packages /app/py_packages
 
 # Update PATH to use locally installed packages
-ENV PATH=/root/.local/bin:$PATH
+ENV PYTHONPATH=/app/py_packages
 
 # Copy the rest of the application code
 COPY ./app /app
