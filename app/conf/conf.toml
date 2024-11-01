@@ -2,4 +2,4 @@
 max_upload_size=104857600
 
 [file_uploader]
-base_path='/Users/scalabrese/PycharmProjects/florence-2-docker/data'
+base_path='data'
