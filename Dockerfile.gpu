@@ -8,6 +8,8 @@ WORKDIR /app
 ENV DEBIAN_FRONTEND=noninteractive
 # Set timezone to UTC to avoid timezone prompts
 ENV TZ=Etc/UTC
+# Force using Gloo to avoid UCC conflicts
+ENV TORCH_DISTRIBUTED_BACKEND=gloo
 
 RUN apt update && \
     apt-get install -y --no-install-recommends \
@@ -18,6 +20,8 @@ RUN apt update && \
     libgl1 && \
     rm -rf /var/lib/apt/lists/*
 
+# Remove HPCX (UCC) if it exists to avoid conflict
+RUN rm -rf /opt/hpcx
 
 # Builder stage to install Python dependencies separately
 FROM base AS final
