@@ -1,32 +1,40 @@
+# Base stage for common dependencies
 FROM nvcr.io/nvidia/cuda:12.2.2-devel-ubuntu22.04 AS base
 
 # Set the working directory in the container
 WORKDIR /app
 
-RUN apt update && apt-get install -y \
+# Install OS dependencies
+RUN apt update && \
+    apt-get install -y \
     git \
     python3.10 \
     python3-pip \
     ffmpeg \
     libsm6 \
-    libxext6 \
-    && rm -rf /var/lib/apt/lists/*
+    libxext6 && \
+    rm -rf /var/lib/apt/lists/*
 
+# Install pip and upgrade tools
 RUN pip install --upgrade pip wheel setuptools
 
-RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 && \
+# Install PyTorch and CUDA dependencies
+RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 
-FROM base AS builder
+# Builder stage to install Python dependencies separately
+FROM base AS dependencies
 
-# Copy the requirements file and install dependencies
+# Copy only requirements.txt to leverage caching
 COPY requirements.txt .
+
+# Install Python dependencies
 RUN pip install -r requirements.txt
 
 # Final stage to build the lightweight image
 FROM base AS final
 
-# Copy installed dependencies from the builder stage
-COPY --from=builder /root/.local /root/.local
+# Copy installed dependencies from the dependencies stage
+COPY --from=dependencies /root/.local /root/.local
 
 # Update PATH to use locally installed packages
 ENV PATH=/root/.local/bin:$PATH
