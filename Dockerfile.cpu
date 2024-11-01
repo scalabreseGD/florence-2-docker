@@ -4,28 +4,19 @@ FROM ubuntu:22.04 AS base
 # Set the working directory in the container
 WORKDIR /app
 
-# Set environment variables to avoid interactive prompts
-ENV DEBIAN_FRONTEND=noninteractive
-# Set timezone to UTC to avoid timezone prompts
-ENV TZ=Etc/UTC
-
-RUN apt update && \
-    apt-get install -y --no-install-recommends \
+# Install ffmpeg and other dependencies
+RUN apt-get update && \
+    apt-get install -y ffmpeg \
     python3.10 \
-    python3-pip \
-    libopencv-dev \
-    ffmpeg \
-    libsm6 \
-    libxext6 \
-    libgl1 && \
+    python3-pip && \
     rm -rf /var/lib/apt/lists/*
-
 
 # Builder stage to install Python dependencies separately
 FROM base AS final
 
 # Copy only requirements.txt to leverage caching
 COPY requirements.txt .
+
 # Install Python dependencies
 RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
     pip install -r requirements.txt
