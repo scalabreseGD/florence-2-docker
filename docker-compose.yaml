@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  florence-2-gpu:
+    image: florence-2-gpu:1.0.1
+    container_name: florence_container
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+    volumes:
+      - ./huggingface:/root/.cache/huggingface/
+      - ./data:/app/data:rw
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    stdin_open: true
+    tty: true

@@ -8,8 +8,8 @@ from pathlib import Path
 class FileUploader:
     def __init__(self, base_path):
         pid = str(os.getpid())
-        home = Path.home()
-        self.folder = os.path.join(home, base_path, pid)
+        # home = Path.home()
+        self.folder = os.path.join(base_path, pid)
         self.__create_folder(self.folder)
 
     @staticmethod
