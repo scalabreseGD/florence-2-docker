@@ -23,6 +23,9 @@ class Florence:
 
     def __init_model(self):
         dtype = torch.float16 if torch.cuda.is_available() else torch.float32
+        if torch.cuda.get_device_properties(0).major >= 8:
+            torch.backends.cuda.matmul.allow_tf32 = True
+            torch.backends.cudnn.allow_tf32 = True
         self.model = AutoModelForCausalLM.from_pretrained(self.model_name,
                                                           trust_remote_code=True,
                                                           torch_dtype=dtype,
