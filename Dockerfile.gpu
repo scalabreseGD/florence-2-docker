@@ -7,11 +7,10 @@ WORKDIR /app
 RUN apt update && \
     apt-get install -y --no-install-recommends \
     libopencv-dev \
-    libgtk-3-dev \
-    libv4l-dev \
     ffmpeg \
     libsm6 \
-    libxext6 && \
+    libxext6 \
+    libgl1 && \
     rm -rf /var/lib/apt/lists/*
 
 

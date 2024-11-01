@@ -9,11 +9,10 @@ RUN apt update && \
     python3.10 \
     python3-pip \
     libopencv-dev \
-    libgtk-3-dev \
-    libv4l-dev \
     ffmpeg \
     libsm6 \
-    libxext6 && \
+    libxext6 \
+    libgl1 && \
     rm -rf /var/lib/apt/lists/*
 
 
