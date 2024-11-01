@@ -4,6 +4,13 @@ FROM nvcr.io/nvidia/pytorch:24.10-py3 AS base
 # Set the working directory in the container
 WORKDIR /app
 
+RUN apt update && \
+    apt-get install -y \
+    ffmpeg \
+    libsm6 \
+    libxext6 && \
+    rm -rf /var/lib/apt/lists/*
+
 
 # Builder stage to install Python dependencies separately
 FROM base AS final
