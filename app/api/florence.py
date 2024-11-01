@@ -6,7 +6,7 @@ from PIL.Image import Image
 from transformers import AutoModelForCausalLM, AutoProcessor
 
 from api.patches import DEVICE, run_with_patch
-from api.utils import base64_to_image_with_size, is_base64_string, load_image_from_path, is_path_video, \
+from api.utils import base64_to_image_with_size, is_base64_string, load_image_from_path, \
     load_video_from_path, perform_in_batch
 
 

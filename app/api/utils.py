@@ -1,7 +1,6 @@
 import base64
 import io
 import re
-from pathlib import Path
 from typing import Tuple, Union, Optional, Callable, Dict, List, Any
 
 import numpy as np
@@ -17,11 +16,6 @@ def is_base64_string(string):
             and re.fullmatch(r'[A-Za-z0-9+/=]+', string)  # Only Base64 characters
             and (len(string) % 4 == 0)  # Base64 strings are divisible by 4
     )
-
-
-def is_path_video(string: str) -> bool:
-    file_path = Path("example/file.txt")
-    return file_path.suffix[1:] == 'mp4'
 
 
 def scale_image(image, scale_factor=None):
