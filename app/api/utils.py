@@ -68,8 +68,7 @@ def load_video_from_path(path: str,
 
     # Check if the video opened successfully
     if not cap.isOpened():
-        print("Error: Could not open video.")
-        return []
+        raise Exception("Error: Could not open video.")
 
     # Get the frame rate of the video
     fps = cap.get(cv2.CAP_PROP_FPS)
