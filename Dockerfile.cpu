@@ -1,19 +1,28 @@
-FROM ubuntu:22.04
+# Base stage for common dependencies
+FROM ubuntu:22.04 AS base
 
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy the requirements file and install dependencies
-COPY requirements.txt /app/requirements.txt
-
-RUN apt update && apt-get install -y \
+RUN apt update && \
+    apt-get install -y --no-install-recommends \
     python3.10 \
     python3-pip \
+    libopencv-dev \
+    libgtk-3-dev \
+    libv4l-dev \
     ffmpeg \
     libsm6 \
-    libxext6 \
-    && rm -rf /var/lib/apt/lists/*
+    libxext6 && \
+    rm -rf /var/lib/apt/lists/*
 
+
+# Builder stage to install Python dependencies separately
+FROM base AS final
+
+# Copy only requirements.txt to leverage caching
+COPY requirements.txt .
+# Install Python dependencies
 RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
     pip install -r requirements.txt
 
