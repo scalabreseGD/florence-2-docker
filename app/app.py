@@ -42,4 +42,4 @@ async def asset(files: List[UploadFile] = File(...)):
 
 if __name__ == "__main__":
     port = os.environ.get('PORT', '8000')
-    uvicorn.run(app, host="0.0.0.0", port=int(port), log_level="info")
+    uvicorn.run(app, host="0.0.0.0", port=int(port), log_config='conf/log.ini')
