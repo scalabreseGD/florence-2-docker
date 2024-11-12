@@ -6,8 +6,10 @@ from PIL.Image import Image
 from transformers import AutoModelForCausalLM, AutoProcessor
 
 from api.patches import DEVICE, run_with_patch
-from api.utils import base64_to_image_with_size, is_base64_string, load_image_from_path, \
+from utils import base64_to_image_with_size, is_base64_string, load_image_from_path, \
     load_video_from_path, perform_in_batch
+
+from models import PredictResponse
 
 
 class Florence:
@@ -21,11 +23,35 @@ class Florence:
         self.model = None
         self.processor = None
 
+    def call_model(self, task: str, text: str,
+                   stream=False,
+                   images: Optional[List[str]] = None,
+                   video: Optional[str] = None,
+                   batch_size: Optional[int] = None,
+                   scale_factor=None,
+                   start_second=None,
+                   end_second=None):
+        if self.processor is None:
+            run_with_patch(self.__init_model)
+
+        if text == '':
+            text = task
+        images_pillow_with_size = self.__read_images(images=images, video=video,
+                                                     scale_factor=scale_factor,
+                                                     start_second=start_second,
+                                                     end_second=end_second)
+        if stream:
+            resp_generator = perform_in_batch(images_pillow_with_size, self.__call_model, True, task=task, text=text)
+            only_res_generator = (resp[0].get(task) for resp in resp_generator)
+            return ((PredictResponse(task=task, response=res).json() + "\n").encode("utf-8") for res in
+                    only_res_generator)
+        else:
+            responses = perform_in_batch(images_pillow_with_size, self.__call_model, False, batch_size, task=task,
+                                         text=text)
+            return [PredictResponse(task=task, response=resp[task]) for resp in responses]
+
     def __init_model(self):
         dtype = torch.float16 if torch.cuda.is_available() else torch.float32
-        if torch.cuda.get_device_properties(0).major >= 8:
-            torch.backends.cuda.matmul.allow_tf32 = True
-            torch.backends.cudnn.allow_tf32 = True
         self.model = AutoModelForCausalLM.from_pretrained(self.model_name,
                                                           trust_remote_code=True,
                                                           torch_dtype=dtype,
@@ -38,9 +64,22 @@ class Florence:
                                                        clean_up_tokenization_spaces=True
                                                        )
 
+    @staticmethod
+    def __read_images(images: Optional[List[str]] = None,
+                      video: Optional[str] = None,
+                      scale_factor=None,
+                      start_second=None,
+                      end_second=None):
+        if video is not None:
+            images_pillow_with_size = load_video_from_path(video, scale_factor, start_second, end_second)
+        elif images is not None and is_base64_string(images[0]):
+            images_pillow_with_size = [base64_to_image_with_size(image) for image in images]
+        else:
+            images_pillow_with_size = [load_image_from_path(image_path) for image_path in images]
+        return images_pillow_with_size
+
     def __call_model(self, images: List[Tuple[Image, Union[Tuple[int, int], np.ndarray]]], task: str, text: str):
-        image_size = images[0][1]
-        inputs = self.processor(text=[text for _ in images],
+        inputs = self.processor(text=[text for _ in range(0, len(images))],
                                 images=[images_pillow[0] for images_pillow in images],
                                 return_tensors="pt").to(DEVICE)
         with torch.inference_mode(), torch.autocast(DEVICE.type):
@@ -52,33 +91,13 @@ class Florence:
             )
         gen_texts = self.processor.batch_decode(generated_ids, skip_special_tokens=False)
         responses = []
-        for generated_text in gen_texts:
+        for (image_size, image), generated_text in zip(images, gen_texts):
             response = self.processor.post_process_generation(generated_text, task=task,
                                                               image_size=image_size)
             responses.append(response)
-
-        [images_pillow[0].close() for images_pillow in images]
+            image.close()
         return responses
 
-    def call_model(self, task: str, text: str,
-                   images: Optional[List[str]] = None,
-                   video: Optional[str] = None,
-                   batch_size:Optional[int] = None,
-                   scale_factor=None,
-                   start_second=None,
-                   end_second=None):
-        if self.processor is None:
-            run_with_patch(self.__init_model)
-
-        if text == '':
-            text = task
-        if video is not None:
-            images_pillow_with_size = load_video_from_path(video, scale_factor, start_second, end_second)
-        elif images is not None and is_base64_string(images[0]):
-            images_pillow_with_size = [base64_to_image_with_size(image) for image in images]
-        else:
-            images_pillow_with_size = [load_image_from_path(image_path) for image_path in images]
-        return perform_in_batch(images_pillow_with_size, batch_size, self.__call_model, task=task, text=text)
 
 class FlorenceServe:
     loaded_models = {}
