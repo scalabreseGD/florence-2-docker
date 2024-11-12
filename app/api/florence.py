@@ -91,7 +91,7 @@ class Florence:
             )
         gen_texts = self.processor.batch_decode(generated_ids, skip_special_tokens=False)
         responses = []
-        for (image_size, image), generated_text in zip(images, gen_texts):
+        for (image, image_size), generated_text in zip(images, gen_texts):
             response = self.processor.post_process_generation(generated_text, task=task,
                                                               image_size=image_size)
             responses.append(response)
