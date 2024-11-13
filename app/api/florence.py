@@ -43,12 +43,12 @@ class Florence:
         if stream:
             resp_generator = perform_in_batch(images_pillow_with_size, self.__call_model, True, task=task, text=text)
             only_res_generator = (resp[0].get(task) for resp in resp_generator)
-            return ((PredictResponse(task=task, response=res).json() + "\n").encode("utf-8") for res in
+            return ((PredictResponse(response=res).json() + "\n").encode("utf-8") for res in
                     only_res_generator)
         else:
             responses = perform_in_batch(images_pillow_with_size, self.__call_model, False, batch_size, task=task,
                                          text=text)
-            return [PredictResponse(task=task, response=resp[task]) for resp in responses]
+            return [PredictResponse(response=resp) for resp in responses]
 
     def __init_model(self):
         dtype = torch.float16 if torch.cuda.is_available() else torch.float32

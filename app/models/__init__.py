@@ -37,7 +37,4 @@ class PredictArgs(BaseModel):
 
 
 class PredictResponse(BaseModel):
-    task: Literal[FLORENCE_PROMPTS] = Field(...,
-                                            description="The task to execute between these values\n" + '\n'.join(
-                                                FLORENCE_PROMPTS))
-    response: Optional[Union[str, dict]] = Field(..., description="The output from Florence depending on the task type")
+    response: Optional[dict] = Field(..., description="The output from Florence depending on the task type")
