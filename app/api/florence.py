@@ -49,8 +49,9 @@ class Florence:
         else:
             responses = perform_in_batch(images_pillow_with_size, self.__call_model, False, batch_size, task=task,
                                          text=text)
+            return_resp = [PredictResponse(response=resp) for resp in responses]
             self.__unload_model()
-            return [PredictResponse(response=resp) for resp in responses]
+            return return_resp
 
     def unload_model_after_stream(self):
         self.__unload_model()
