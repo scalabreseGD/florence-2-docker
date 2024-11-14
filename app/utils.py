@@ -76,13 +76,9 @@ def load_video_from_path(path: str,
     return frames
 
 
-def perform_in_batch(images, function: Callable[[Any, Dict], Any], is_stream=False, batch_size=20, **kwargs):
-    if is_stream:
-        for image in tqdm(images, desc='Performing inference'):
-            yield function([image], **kwargs)
-    else:
-        results = []
-        for frame_index in tqdm(range(0, len(images), min(len(images), batch_size)), desc='Performing inference'):
-            batch = function(images[frame_index:frame_index + batch_size], **kwargs)
-            results.extend(batch)
-        return results
+def perform_in_batch(images, function: Callable[[Any, Dict], Any], batch_size=20, **kwargs):
+    results = []
+    for frame_index in tqdm(range(0, len(images), min(len(images), batch_size)), desc='Performing inference'):
+        batch = function(images[frame_index:frame_index + batch_size], **kwargs)
+        results.extend(batch)
+    return results

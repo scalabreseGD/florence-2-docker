@@ -42,12 +42,13 @@ class Florence:
                                                      start_second=start_second,
                                                      end_second=end_second)
         if stream:
-            resp_generator = perform_in_batch(images_pillow_with_size, self.__call_model, True, task=task, text=text)
+            resp_generator = (self.__call_model(images=[image], task=task, text=text) for image in
+                              images_pillow_with_size)
             only_res_generator = (resp[0] for resp in resp_generator)
             return ((PredictResponse(response=res).json() + "\n").encode("utf-8") for res in
                     only_res_generator)
         else:
-            responses = perform_in_batch(images_pillow_with_size, self.__call_model, False, batch_size, task=task,
+            responses = perform_in_batch(images_pillow_with_size, self.__call_model, batch_size, task=task,
                                          text=text)
             return_resp = [PredictResponse(response=resp) for resp in responses]
             self.__unload_model()
