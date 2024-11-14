@@ -1,8 +1,11 @@
-from typing import Literal, Optional, List, Union
+from typing import Literal, Optional, List
 
 from pydantic import BaseModel, Field
 
-FLORENCE_MODELS = ("Florence-2-base", "Florence-2-large", "Florence-2-base-ft", "Florence-2-large-ft")
+FLORENCE_MODELS = ("microsoft/Florence-2-base",
+                   "microsoft/Florence-2-large",
+                   "microsoft/Florence-2-base-ft",
+                   "microsoft/Florence-2-large-ft")
 FLORENCE_PROMPTS = ("<CAPTION>",
                     "<DETAILED_CAPTION>",
                     "<MORE_DETAILED_CAPTION>",

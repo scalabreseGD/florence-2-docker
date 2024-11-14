@@ -1,3 +1,4 @@
+import gc
 from typing import List, Tuple, Union, Optional
 
 import numpy as np
@@ -19,7 +20,7 @@ class Florence:
                  hf_token=None
                  ):
         self.hf_token = hf_token
-        self.model_name = f"microsoft/{model_name}"
+        self.model_name = model_name
         self.model = None
         self.processor = None
 
@@ -48,7 +49,11 @@ class Florence:
         else:
             responses = perform_in_batch(images_pillow_with_size, self.__call_model, False, batch_size, task=task,
                                          text=text)
+            self.__unload_model()
             return [PredictResponse(response=resp) for resp in responses]
+
+    def unload_model_after_stream(self):
+        self.__unload_model()
 
     def __init_model(self):
         dtype = torch.float16 if torch.cuda.is_available() else torch.float32
@@ -63,6 +68,16 @@ class Florence:
                                                        token=self.hf_token,
                                                        clean_up_tokenization_spaces=True
                                                        )
+
+    def __unload_model(self):
+        del self.model
+        del self.processor
+        self.model = None
+        self.processor = None
+        if DEVICE.type == 'cuda':
+            torch.cuda.empty_cache()
+            torch.cuda.ipc_collect()
+        gc.collect()
 
     @staticmethod
     def __read_images(images: Optional[List[str]] = None,

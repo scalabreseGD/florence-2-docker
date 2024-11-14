@@ -9,11 +9,11 @@ __florence_serve = None
 __file_uploader = None
 
 
-def florence(model) -> Florence:
+def florence(model, **kwargs) -> Florence:
     global __florence_serve
     if __florence_serve is None:
         __florence_serve = FlorenceServe()
-    return __florence_serve.get_or_load_model(model)
+    return __florence_serve.get_or_load_model(model, **kwargs)
 
 
 def file_uploader() -> FileUploader:

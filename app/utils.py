@@ -76,7 +76,7 @@ def load_video_from_path(path: str,
     return frames
 
 
-def perform_in_batch(images, function: Callable[[List, Dict], Any], is_stream=False, batch_size=20, **kwargs):
+def perform_in_batch(images, function: Callable[[Any, Dict], Any], is_stream=False, batch_size=20, **kwargs):
     if is_stream:
         for image in tqdm(images, desc='Performing inference'):
             yield function([image], **kwargs)
