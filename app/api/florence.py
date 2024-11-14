@@ -8,7 +8,7 @@ from transformers import AutoModelForCausalLM, AutoProcessor
 
 from api.patches import DEVICE, run_with_patch
 from utils import base64_to_image_with_size, is_base64_string, load_image_from_path, \
-    load_video_from_path, perform_in_batch
+    load_video_from_path, perform_in_batch, tqdm_log
 
 from models import PredictResponse
 
@@ -43,9 +43,9 @@ class Florence:
                                                      end_second=end_second)
         if stream:
             resp_generator = (self.__call_model(images=[image], task=task, text=text) for image in
-                              images_pillow_with_size)
+                              tqdm_log(images_pillow_with_size, log_level='INFO', desc='Perform Inference with Stream'))
             only_res_generator = (resp[0] for resp in resp_generator)
-            return ((PredictResponse(response=res).json() + "\n").encode("utf-8") for res in
+            return ((PredictResponse(response=res).model_dump_json() + "\n").encode("utf-8") for res in
                     only_res_generator)
         else:
             responses = perform_in_batch(images_pillow_with_size, self.__call_model, batch_size, task=task,

@@ -78,7 +78,16 @@ def load_video_from_path(path: str,
 
 def perform_in_batch(images, function: Callable[[Any, Dict], Any], batch_size=20, **kwargs):
     results = []
-    for frame_index in tqdm(range(0, len(images), min(len(images), batch_size)), desc='Performing inference'):
+    for frame_index in tqdm_log(range(0, len(images), min(len(images), batch_size)), desc='Performing inference'):
         batch = function(images[frame_index:frame_index + batch_size], **kwargs)
         results.extend(batch)
     return results
+
+
+def tqdm_log(tqdm_iter, log_level='INFO', **tqdm_kwargs):
+    import logging
+    from logging import getLevelName
+    progress_bar = tqdm(tqdm_iter, **tqdm_kwargs)
+    for elem in progress_bar:
+        logging.log(level=getLevelName(log_level), msg=progress_bar)
+        yield elem
