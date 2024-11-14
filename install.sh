@@ -20,9 +20,9 @@ else
     PLATFORM=""
 fi
 
-latest_tag=$(docker images --format "{{.Tag}}" $REGISTRY:$IMAGE_NAME | sort -V | tail -n 1)
+latest_tag=$(docker images --format "{{.Tag}}" $REGISTRY/$IMAGE_NAME | sort -V | tail -n 1)
 
-echo "Bumping $REGISTRY:$IMAGE_NAME"
+echo "Bumping $REGISTRY/$IMAGE_NAME"
 
 if [ -z "$latest_tag" ]; then
     echo "No tags found for image $IMAGE_NAME. Setting initial version to 1.0.0."
