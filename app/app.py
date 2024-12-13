@@ -3,36 +3,42 @@ from typing import List
 
 import uvicorn
 from fastapi import FastAPI, UploadFile, File, BackgroundTasks
-from starlette.responses import Response, StreamingResponse
+from starlette.responses import StreamingResponse
 
-from api import florence, file_uploader
+from api import file_uploader, invoke_model, convert_chat_completion_to_prompt, convert_response_to_openai, \
+    to_json_string
 from middleware import LimitRequestSizeMiddleware, lifespan
-from models import PredictArgs, PredictResponse
+from models import PredictArgs, PredictResponse, ChatCompletionModel, ChatCompletionResponse
 
 app = FastAPI(lifespan=lifespan)
 app.add_middleware(LimitRequestSizeMiddleware)
 
 
-def __return_response(request: PredictArgs, stream=False, background_tasks: BackgroundTasks = None):
-    if request.video is not None and request.images is not None:
-        Response(
-            "Cannot use both images and video in the same request", status_code=400
-        )
-    model = florence(request.model)
-    responses = model.call_model(task=request.task,
-                                 text=request.text,
-                                 images=request.images,
-                                 stream=stream,
-                                 video=request.video,
-                                 batch_size=request.batch_size,
-                                 scale_factor=request.scale_factor,
-                                 start_second=request.start_second,
-                                 end_second=request.end_second)
+def __return_response(request: PredictArgs,
+                      stream=False,
+                      is_openai=False,
+                      background_tasks: BackgroundTasks = None):
+    model, responses = invoke_model(request)
     if stream:
         background_tasks.add_task(model.unload_model_after_stream)
-        return StreamingResponse(responses, media_type="application/json")
+        if is_openai:
+            streaming_responses = (to_json_string(convert_response_to_openai(
+                predict_response=resp,
+                task=request.task,
+                is_stream=stream,
+                model=request.model
+            )) for resp in responses)
+        else:
+            streaming_responses = (to_json_string(resp).encode("utf-8") for resp in responses)
+        return StreamingResponse(streaming_responses, media_type="application/json")
     else:
-        return responses
+        if is_openai:
+            return convert_response_to_openai(predict_response=responses,
+                                              is_stream=False,
+                                              task=request.task,
+                                              model=request.model)
+        else:
+            return responses
 
 
 @app.post("/v1/predict", response_model=List[PredictResponse])
@@ -43,6 +49,13 @@ async def predict(request: PredictArgs):
 @app.post("/v1/predict_async")
 async def predict_async(request: PredictArgs, background_tasks: BackgroundTasks):
     return __return_response(request, stream=True, background_tasks=background_tasks)
+
+
+@app.post("/v1/chat/completions", response_model=ChatCompletionResponse)
+async def chat_completions(request: ChatCompletionModel, background_tasks: BackgroundTasks):
+    predict_args = convert_chat_completion_to_prompt(request)
+    return __return_response(request=predict_args, stream=request.stream, is_openai=True,
+                             background_tasks=background_tasks)
 
 
 @app.put("/v1/asset")

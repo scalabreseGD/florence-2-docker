@@ -1,0 +1,18 @@
+FLORENCE_MODELS = ("microsoft/Florence-2-base",
+                   "microsoft/Florence-2-large",
+                   "microsoft/Florence-2-base-ft",
+                   "microsoft/Florence-2-large-ft")
+FLORENCE_PROMPTS = ("<CAPTION>",
+                    "<DETAILED_CAPTION>",
+                    "<MORE_DETAILED_CAPTION>",
+                    "<OD>",
+                    "<DENSE_REGION_CAPTION>",
+                    "<REGION_PROPOSAL>",
+                    "<CAPTION_TO_PHRASE_GROUNDING>",
+                    "<REFERRING_EXPRESSION_SEGMENTATION>",
+                    "<REGION_TO_SEGMENTATION>",
+                    "<OPEN_VOCABULARY_DETECTION>",
+                    "<REGION_TO_CATEGORY>",
+                    "<REGION_TO_DESCRIPTION>",
+                    "<OCR>",
+                    "<OCR_WITH_REGION>")

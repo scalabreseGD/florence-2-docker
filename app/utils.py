@@ -1,5 +1,6 @@
 import base64
 import io
+import mimetypes
 import re
 from typing import Tuple, Union, Optional, Callable, Dict, List, Any
 
@@ -16,6 +17,27 @@ def is_base64_string(string):
             and re.fullmatch(r'[A-Za-z0-9+/=]+', string)  # Only Base64 characters
             and (len(string) % 4 == 0)  # Base64 strings are divisible by 4
     )
+
+
+def file_type(path):
+    """
+    Determines if the given file path is an image, a video, or neither.
+
+    Args:
+        path (str): The file path to check.
+
+    Returns:
+        str: 'image' if the file is an image,
+             'video' if the file is a video,
+             'unknown' if neither.
+    """
+    mime_type, _ = mimetypes.guess_type(path)
+    if mime_type:
+        if mime_type.startswith("image"):
+            return "image"
+        elif mime_type.startswith("video"):
+            return "video"
+    return "unknown"
 
 
 def scale_image(image, scale_factor=None):
@@ -91,3 +113,14 @@ def tqdm_log(tqdm_iter, log_level='INFO', **tqdm_kwargs):
     for elem in progress_bar:
         logging.log(level=getLevelName(log_level), msg=progress_bar)
         yield elem
+
+
+def parse_tags_from_content(content):
+    tags = {'task': True, 'text': False, 'media_path': True}
+    extracted_data = [(tag, re.search(rf'<{tag}>(.*?)</{tag}>', content), is_mandatory) for tag, is_mandatory in
+                      tags.items()]
+
+    # Extract the actual content (group 1) if a match is found, otherwise return None
+    extracted_data = [(tag, match.group(1) if match else None, is_mandatory) for tag, match, is_mandatory in
+                      extracted_data]
+    return extracted_data
