@@ -74,6 +74,18 @@ def convert_chat_completion_to_prompt(chat_completion: ChatCompletionModel) -> P
                        images=[media_path] if not is_video else [])
 
 
+def __parse_content(predict_response, task):
+    if isinstance(predict_response, PredictResponse):
+        task_response = predict_response.response[task]
+    else:
+        task_response = predict_response[0].response[task]
+
+    if isinstance(task_response, dict):
+        return json.dumps(task_response)
+    else:
+        return task_response
+
+
 def convert_response_to_openai(predict_response: Union[PredictResponse, List[PredictResponse]], is_stream,
                                task,
                                model) -> ChatCompletionResponse:
@@ -83,7 +95,7 @@ def convert_response_to_openai(predict_response: Union[PredictResponse, List[Pre
             index=0,
             delta=ChatCompletionMessage(
                 role='assistant',
-                content=predict_response.response[task]),
+                content=__parse_content(predict_response, task)),
             message=None
         )
     else:
@@ -92,9 +104,7 @@ def convert_response_to_openai(predict_response: Union[PredictResponse, List[Pre
             index=0,
             message=ChatCompletionMessage(
                 role='assistant',
-                content=predict_response.response[task]
-                if isinstance(predict_response, PredictResponse)
-                else predict_response[0].response[task]
+                content=__parse_content(predict_response, task)
             ),
             delta=None
         )

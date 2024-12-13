@@ -9,7 +9,7 @@ from models.base import FLORENCE_MODELS, FLORENCE_PROMPTS
 
 class ChatCompletionMessage(BaseModel):
     role: Literal['user', 'assistant'] = Field(..., description="The role of the messages author. Accepted only user")
-    content: str = Field(...,
+    content: str = Field(f"<task>{FLORENCE_PROMPTS[2]}</task>Text<text></text><media_path>/my/asset/path.png</media_path>",
                          description="""
                          If role is user: The content of the message with the format <task></task><text></text><media_path></media_path>
                          If role is assistant: The content of the message as json string""")
